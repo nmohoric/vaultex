@@ -6,6 +6,7 @@ defmodule Vaultex.Client do
   use GenServer
   alias Vaultex.Auth, as: Auth
   alias Vaultex.Read, as: Read
+  alias Vaultex.Write, as: Write
   @version "v1"
 
   def start_link() do
@@ -35,8 +36,16 @@ defmodule Vaultex.Client do
 
     iex> Vaultex.Client.auth(:github, {github_token})
     {:ok, :authenticated}
+
+    iex> Vaultex.Client.auth(:vault_token, {})
+    {:ok, :authenticated}
+
     ```
   """
+  def auth(:vault_token, {}) do
+    auth(:vault_token, {vault_token()})
+  end
+
   def auth(method, credentials) do
     GenServer.call(:vaultex, {:auth, method, credentials})
   end
@@ -73,12 +82,34 @@ defmodule Vaultex.Client do
     end
   end
 
+  def list(key, auth_method, credentials) do
+    read(key <> "?list=true", auth_method, credentials)
+  end
+
+  def write(key, value, auth_method, credentials) do
+    response = write(key, value)
+    case response do
+      {:ok, _} -> response
+      {:error, _} ->
+        with {:ok, _} <- auth(auth_method, credentials),
+          do: write(key, value)
+    end
+  end
+
   defp read(key) do
     GenServer.call(:vaultex, {:read, key})
   end
 
+  defp write(key, value) do
+    GenServer.call(:vaultex, {:write, key, value})
+  end
+
   def handle_call({:read, key}, _from, state) do
     Read.handle(key, state)
+  end
+
+  def handle_call({:write, key, value}, _from, state) do
+    Write.handle(key, value, state)
   end
 
   def handle_call({:auth, method, credentials}, _from, state) do
@@ -101,6 +132,10 @@ defmodule Vaultex.Client do
     parsed_vault_addr().scheme || get_env(:scheme)
   end
 
+  defp vault_token do
+    get_env(:vault_token)
+  end
+
   defp parsed_vault_addr do
     get_env(:vault_addr) |> to_string |> URI.parse
   end
@@ -119,5 +154,9 @@ defmodule Vaultex.Client do
 
   defp get_env(:vault_addr) do
     System.get_env("VAULT_ADDR") || Application.get_env(:vaultex, :vault_addr)
+  end
+
+  defp get_env(:vault_token) do
+    System.get_env("VAULT_TOKEN") || Application.get_env(:vaultex, :vault_token)
   end
 end

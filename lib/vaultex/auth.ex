@@ -14,6 +14,10 @@ defmodule Vaultex.Auth do
     |> handle_response(state)
   end
 
+  def handle(:vault_token, {token}, state) do
+    {:reply, {:ok, :authenticated}, Map.merge(state, %{token: token})}
+  end
+
   defp handle_response({:ok, response}, state) do
     case response.body |> Poison.Parser.parse! do
       %{"errors" => messages} -> {:reply, {:error, messages}, state}
@@ -28,4 +32,5 @@ defmodule Vaultex.Auth do
   defp request(method, url, params = %{}, headers) do
     Vaultex.RedirectableRequests.request(method, url, params, headers)
   end
+
 end
