@@ -49,6 +49,14 @@ Or application variables:
 
 These default to `localhost`, `8200`, `http` respectively.
 
+You can specify a vault token to use instead of logging in using the environment variable:
+
+* `VAULT_TOKEN`
+
+Or the application variable:
+
+* `:vaultex, :vault_token`
+
 ## Usage
 
 To read a secret you must provide the path to the secret and the authentication backend and credentials you will use to login. See the [Vaultex.Client.auth/2](https://hexdocs.pm/vaultex/Vaultex.Client.html#auth/2) docs for supported auth backends.
@@ -61,7 +69,11 @@ iex> Vaultex.Client.auth(:userpass, {username, password})
 
 iex> Vaultex.Client.auth(:github, {github_token})
 
+iex> Vaultex.Client.auth(:vault_token, {})
+
 ...
 iex> Vaultex.Client.read "secret/bar", :github, {github_token} #returns {:ok, %{"value" => bar"}}
+iex> Vaultex.Client.list "secret/", :github, {github_token} # returns {:ok, %{"keys" => ["bar"]}}
+iex> Vaultex.Client.write "secret/bar", "value", :github, {github_token} # returns {:ok, "Key saved" }
 
 ```
