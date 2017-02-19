@@ -72,6 +72,10 @@ defmodule Vaultex.Client do
     ```
 
   """
+  def read(key, :vault_token, credentials) do
+    with {:ok, _} <- auth(:vault_token, credentials)
+      do: read(key)
+  end
   def read(key, auth_method, credentials) do
     response = read(key)
     case response do
@@ -86,6 +90,10 @@ defmodule Vaultex.Client do
     read(key <> "?list=true", auth_method, credentials)
   end
 
+  def write(key, value, :vault_token, credentials) do
+    with {:ok, _} <- auth(:vault_token, credentials),
+      do: write(key, value)
+  end
   def write(key, value, auth_method, credentials) do
     response = write(key, value)
     case response do
