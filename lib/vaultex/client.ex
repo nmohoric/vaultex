@@ -73,7 +73,7 @@ defmodule Vaultex.Client do
 
   """
   def read(key, :vault_token, credentials) do
-    with {:ok, _} <- auth(:vault_token, credentials)
+    with {:ok, _} <- auth(:vault_token, credentials),
       do: read(key)
   end
   def read(key, auth_method, credentials) do
