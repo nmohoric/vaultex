@@ -73,8 +73,12 @@ defmodule Vaultex.Client do
 
   """
   def read(key, :vault_token, credentials) do
-    with {:ok, _} <- auth(:vault_token, credentials),
-      do: read(key)
+    token = case credentials do
+              {} -> vault_token()
+              vt -> vt
+            end
+    state = %{url: url(), token: token}
+    Read.handle(key, state)
   end
   def read(key, auth_method, credentials) do
     response = read(key)
@@ -86,13 +90,25 @@ defmodule Vaultex.Client do
     end
   end
 
+  def list(key, :vault_token, credentials) do
+    token = case credentials do
+              {} -> vault_token()
+              vt -> vt
+            end
+    state = %{url: url(), token: token}
+    Read.handle(key <> "?list=true", state)
+  end
   def list(key, auth_method, credentials) do
     read(key <> "?list=true", auth_method, credentials)
   end
 
   def write(key, value, :vault_token, credentials) do
-    with {:ok, _} <- auth(:vault_token, credentials),
-      do: write(key, value)
+    token = case credentials do
+              {} -> vault_token()
+              vt -> vt
+            end
+    state = %{url: url(), token: token}
+    Write.handle(key, value, state)
   end
   def write(key, value, auth_method, credentials) do
     response = write(key, value)
