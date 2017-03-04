@@ -78,7 +78,8 @@ defmodule Vaultex.Client do
               vt -> vt
             end
     state = %{url: url(), token: token}
-    Read.handle(key, state)
+    {:reply, res, _} = Read.handle(key, state)
+    res
   end
   def read(key, auth_method, credentials) do
     response = read(key)
@@ -96,7 +97,8 @@ defmodule Vaultex.Client do
               vt -> vt
             end
     state = %{url: url(), token: token}
-    Read.handle(key <> "?list=true", state)
+    {:reply, res, _} = Read.handle(key <> "?list=true", state)
+    res
   end
   def list(key, auth_method, credentials) do
     read(key <> "?list=true", auth_method, credentials)
@@ -108,7 +110,8 @@ defmodule Vaultex.Client do
               vt -> vt
             end
     state = %{url: url(), token: token}
-    Write.handle(key, value, state)
+    {:reply, res, _} = Write.handle(key, value, state)
+    res
   end
   def write(key, value, auth_method, credentials) do
     response = write(key, value)
