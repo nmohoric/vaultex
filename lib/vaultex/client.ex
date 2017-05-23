@@ -7,6 +7,7 @@ defmodule Vaultex.Client do
   alias Vaultex.Auth, as: Auth
   alias Vaultex.Read, as: Read
   alias Vaultex.Write, as: Write
+  alias Vaultex.Delete, as: Delete
   @version "v1"
 
   def start_link() do
@@ -123,6 +124,25 @@ defmodule Vaultex.Client do
     end
   end
 
+  def delete(key, :vault_token, credentials) do
+    token = case credentials do
+              {}   -> vault_token()
+              {vt} -> vt
+            end
+    state = %{url: url(), token: token}
+    {:reply, res, _} = Delete.handle(key, state)
+    res
+  end
+  def delete(key, auth_method, credentials) do
+    response = delete(key)
+    case response do
+      {:ok, _} -> response
+      {:error, _} ->
+        with {:ok, _} <- auth(auth_method, credentials),
+          do: delete(key)
+    end
+  end
+
   defp read(key) do
     GenServer.call(:vaultex, {:read, key})
   end
@@ -131,12 +151,20 @@ defmodule Vaultex.Client do
     GenServer.call(:vaultex, {:write, key, value})
   end
 
+  defp delete(key) do
+    GenServer.call(:vaultex, {:delete, key})
+  end
+
   def handle_call({:read, key}, _from, state) do
     Read.handle(key, state)
   end
 
   def handle_call({:write, key, value}, _from, state) do
     Write.handle(key, value, state)
+  end
+
+  def handle_call({:delete, key}, _from, state) do
+    Delete.handle(key, state)
   end
 
   def handle_call({:auth, method, credentials}, _from, state) do

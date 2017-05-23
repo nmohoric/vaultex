@@ -75,5 +75,6 @@ iex> Vaultex.Client.auth(:vault_token, {})
 iex> Vaultex.Client.read "secret/bar", :github, {github_token} #returns {:ok, %{"value" => bar"}}
 iex> Vaultex.Client.list "secret/", :github, {github_token} # returns {:ok, %{"keys" => ["bar"]}}
 iex> Vaultex.Client.write "secret/bar", "value", :github, {github_token} # returns {:ok, "Key saved" }
+iex> Vaultex.Client.delete "secret/bar", :github, {github_token} #returns {:ok, "Key deleted" }
 
 ```
